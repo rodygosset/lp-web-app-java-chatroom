@@ -1,6 +1,11 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 
+
+/**
+ * Custom Thread class used by our ChatRoomClient 
+ * to read and display messages sent to the chatroom.
+ */
 public class ListeningThread extends Thread {
 
     private BufferedReader inchan;
@@ -9,6 +14,9 @@ public class ListeningThread extends Thread {
         this.inchan = in;
     }
 
+    /**
+     * Cleanly stop the thread
+     */
     @Override
     public void interrupt() {
         super.interrupt();
@@ -23,10 +31,12 @@ public class ListeningThread extends Thread {
     public void run() {
 
         try {
-
+            // keep listening to the input channel while the thread is running
             while (true) {
+                // when the thread is interrupted, don't try to read from the input channel
+                // to avoid a socket closed exception
                 if(isInterrupted()) { return; }
-                // listen to the data sent from the server
+                // listen to the data sent by the server
                 String command = inchan.readLine();
                 if(command == null) { continue; }
                 System.out.println("\n" + command);

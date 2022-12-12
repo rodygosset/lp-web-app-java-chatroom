@@ -5,6 +5,10 @@ import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.net.Socket;
 
+/**
+ * Custom Thread class used by the server (ClientRoom)
+ * to handle connections with clients.
+ */
 public class ServerThread extends Thread {
 
     private Socket client;
@@ -12,6 +16,11 @@ public class ServerThread extends Thread {
     private BufferedReader inchan;
     private DataOutputStream outchan;
 
+    /**
+     * Instiate a ServerThread object
+     * @param s the socket used to communicate with the client
+     * @param c the chatroom our client is connected to
+     */
     public ServerThread(Socket s, ClientRoom c) {
         this.client = s;
         this.chatRoom = c;
@@ -26,6 +35,9 @@ public class ServerThread extends Thread {
     }
 
 
+    /**
+     * Cleanly stop the thread.
+     */
     @Override
     public void interrupt() {
         super.interrupt();
@@ -37,10 +49,14 @@ public class ServerThread extends Thread {
         }
     }
 
+    /**
+     * Send a messafe to the client on the other end of the socket
+     * @param msg the message to be sent
+     */
     public void send(String msg) {
-        // write to socket of server
         try {
             outchan.writeBytes(msg + "\n"); // add "\n" to use BufferReader.readLine()
+            // log to stdout
             System.out.println("Sending message to client : " + msg);
         } catch (IOException e) {
             e.printStackTrace();
@@ -56,14 +72,17 @@ public class ServerThread extends Thread {
                 if(this.client.isClosed()) {
                     this.chatRoom.removeClient(this);
                 }
-                // read data
+                // read the data sent by the client
                 String command = inchan.readLine();
-                // close the connection when receiving \quit
+                // close the connection if the user's done
                 if (command.equals("\\quit")) {
+                    // remove the client from the chatroom
                     this.chatRoom.removeClient(this);
+                    // close the socket
                     this.client.close();
                     return;
                 }
+                // forward the recieved message to the other clients in the chatroom
                 this.chatRoom.broadcast(">>> message received: " + command);
             }
         } catch(InterruptedIOException e) {
